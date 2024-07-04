@@ -68,9 +68,9 @@ all_clean_images = np.concatenate(all_clean_images, axis=0)
 all_denoised_images = np.concatenate(all_denoised_images, axis=0)
 
 # 将图像转换到 [0, 255] 范围内，并转换为 uint8
-all_ripple_images = (all_ripple_images * 255).astype(np.uint8)
-all_clean_images = (all_clean_images * 255).astype(np.uint8)
-all_denoised_images = (all_denoised_images * 255).astype(np.uint8)
+all_clean_images = np.clip(all_clean_images, 0, 1)
+all_denoised_images = np.clip(all_denoised_images, 0, 1)
+all_ripple_images = np.clip(all_ripple_images, 0, 1)
 
 
 def show_images(ripple, clean, denoised, num_images=10):
