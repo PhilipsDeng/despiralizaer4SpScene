@@ -11,10 +11,10 @@ model = model.to(device)
 
 # 定义损失函数和优化器
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+optimizer = optim.Adam(model.parameters(), lr=0.005)
 
 # 训练模型
-num_epochs = 500
+num_epochs = 2000
 for epoch in range(num_epochs):
     model.train()  
     for ripple_images, clean_images in train_loader:
