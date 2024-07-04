@@ -3,7 +3,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import numpy as np
-from dataset import train_loader,test_loader  # 确保导入你的数据加载器
+from dataset import train_loader, test_loader  # 确保导入你的数据加载器
 from network import model  # 确保导入你的模型
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,8 +15,11 @@ optimizer = optim.Adam(model.parameters(), lr=0.005)
 
 # 训练模型
 num_epochs = 2000
+loss_values = []
+
 for epoch in range(num_epochs):
-    model.train()  
+    model.train()
+    running_loss = 0.0
     for ripple_images, clean_images in train_loader:
         ripple_images = ripple_images.to(device, non_blocking=True)
         clean_images = clean_images.to(device, non_blocking=True)
@@ -26,15 +29,19 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, clean_images)
         loss.backward()
         optimizer.step()
+        
+        running_loss += loss.item()
     
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+    epoch_loss = running_loss / len(train_loader)
+    loss_values.append(epoch_loss)
+    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
 
 # 保存模型
 torch.save({
     'epoch': num_epochs,
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
-    'loss': loss.item(),
+    'loss': epoch_loss,
 }, 'model_checkpoint.pth')
 
 print('Model saved successfully.')
@@ -67,11 +74,9 @@ all_ripple_images = np.concatenate(all_ripple_images, axis=0)
 all_clean_images = np.concatenate(all_clean_images, axis=0)
 all_denoised_images = np.concatenate(all_denoised_images, axis=0)
 
-
 all_clean_images = np.clip(all_clean_images, 0, 1)
 all_denoised_images = np.clip(all_denoised_images, 0, 1)
 all_ripple_images = np.clip(all_ripple_images, 0, 1)
-
 
 def show_images(ripple, clean, denoised, num_images=10):
     n = min(len(ripple), num_images)
@@ -95,3 +100,12 @@ def show_images(ripple, clean, denoised, num_images=10):
     plt.show()
 
 show_images(all_ripple_images, all_clean_images, all_denoised_images)
+
+# 绘制损失曲线
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, num_epochs + 1), loss_values, label='Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss Curve')
+plt.legend()
+plt.show()
