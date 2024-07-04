@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from network import model  # 假设network.py中定义了模型
-from dataset import test_loader  # 假设dataset.py中定义了test_loader
+from network import model 
+from dataset import test_loader  
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
@@ -70,7 +70,7 @@ def show_images(ripple, denoised, clean, num_images=10):
 
     plt.show()
 
-# 显示一些测试结果
+
 show_images(all_ripple_images, all_denoised_images, all_clean_images)
 
 # if __name__ == "__main__":

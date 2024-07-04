@@ -3,8 +3,8 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import numpy as np
-from dataset import train_loader, test_loader  # 确保导入你的数据加载器
-from network import model  # 确保导入你的模型
+from dataset import train_loader, test_loader 
+from network import model 
 import lpips
 import time
 
@@ -23,7 +23,7 @@ loss_values = []
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
-    start_time = time.time() # 记录每个epoch的开始时间
+    start_time = time.time() 
     for ripple_images, clean_images in train_loader:
         ripple_images = ripple_images.to(device, non_blocking=True)
         clean_images = clean_images.to(device, non_blocking=True)
@@ -32,7 +32,7 @@ for epoch in range(num_epochs):
         outputs = model(ripple_images)
         Huber_loss = criterion(outputs, clean_images)
         perceptual_loss = lpips_loss(outputs, clean_images).mean()
-        loss = Huber_loss + 0.5*perceptual_loss
+        loss = Huber_loss + 0.1*perceptual_loss
         loss.backward()
         optimizer.step()
         
