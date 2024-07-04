@@ -44,8 +44,12 @@ all_ripple_images = np.concatenate(all_ripple_images, axis=0)
 all_clean_images = np.concatenate(all_clean_images, axis=0)
 all_denoised_images = np.concatenate(all_denoised_images, axis=0)
 
+all_clean_images = np.clip(all_clean_images, 0, 1)
+all_denoised_images = np.clip(all_denoised_images, 0, 1)
+all_ripple_images = np.clip(all_ripple_images, 0, 1)
+
 # 显示原始波纹图像和去波纹后的图像
-def show_images(ripple, clean, denoised, num_images=10):
+def show_images(ripple, denoised, clean, num_images=10):
     n = min(len(ripple), num_images)
     plt.figure(figsize=(30, 6))
     for i in range(n):
@@ -54,20 +58,20 @@ def show_images(ripple, clean, denoised, num_images=10):
         plt.title("Ripple")
         plt.axis("off")
 
-        ax = plt.subplot(3, n, i + 1 + n)
-        plt.imshow(clean[i])
-        plt.title("Clean")
-        plt.axis("off")
-
         ax = plt.subplot(3, n, i + 1 + 2 * n)
         plt.imshow(denoised[i])
         plt.title("Denoised")
         plt.axis("off")
 
+        ax = plt.subplot(3, n, i + 1 + n)
+        plt.imshow(clean[i])
+        plt.title("Clean")
+        plt.axis("off")
+
     plt.show()
 
 # 显示一些测试结果
-show_images(all_ripple_images, all_clean_images, all_denoised_images)
+show_images(all_ripple_images, all_denoised_images, all_clean_images)
 
 # if __name__ == "__main__":
 #     show_images(all_ripple_images, all_clean_images, all_denoised_images)

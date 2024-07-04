@@ -14,7 +14,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 训练模型
-num_epochs = 100
+num_epochs = 5000
 for epoch in range(num_epochs):
     model.train()  
     for ripple_images, clean_images in train_loader:
@@ -66,6 +66,12 @@ with torch.no_grad():
 all_ripple_images = np.concatenate(all_ripple_images, axis=0)
 all_clean_images = np.concatenate(all_clean_images, axis=0)
 all_denoised_images = np.concatenate(all_denoised_images, axis=0)
+
+# 将图像转换到 [0, 255] 范围内，并转换为 uint8
+all_ripple_images = (all_ripple_images * 255).astype(np.uint8)
+all_clean_images = (all_clean_images * 255).astype(np.uint8)
+all_denoised_images = (all_denoised_images * 255).astype(np.uint8)
+
 
 def show_images(ripple, clean, denoised, num_images=10):
     n = min(len(ripple), num_images)

@@ -25,7 +25,7 @@ data/
       ...
 '''
 
-
+batch_size = bp.batch_size
 class CustomRippleDataset(Dataset):
     def __init__(self, ripple_dir, clean_dir, transform=None):
         self.ripple_dir = ripple_dir
@@ -51,7 +51,7 @@ class CustomRippleDataset(Dataset):
         return ripple_image, clean_image
 
 transform = transforms.Compose([
-    transforms.ToTensor()
+    transforms.ToTensor(),
 ])
 
 train_dataset = CustomRippleDataset(
@@ -66,5 +66,5 @@ test_dataset = CustomRippleDataset(
     transform=transform
 )
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, pin_memory=True)
-test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False, pin_memory=True)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
