@@ -5,36 +5,48 @@ import torch.nn as nn
 import numpy as np
 from dataset import train_loader, test_loader  # 确保导入你的数据加载器
 from network import model  # 确保导入你的模型
+import lpips
+import time
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
 # 定义损失函数和优化器
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+criterion = criterion = nn.SmoothL1Loss()
+lpips_loss = lpips.LPIPS(net='vgg').to(device)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 # 训练模型
-num_epochs = 2000
+num_epochs = 5000
 loss_values = []
 
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
+    start_time = time.time() # 记录每个epoch的开始时间
     for ripple_images, clean_images in train_loader:
         ripple_images = ripple_images.to(device, non_blocking=True)
         clean_images = clean_images.to(device, non_blocking=True)
         
         optimizer.zero_grad()
         outputs = model(ripple_images)
-        loss = criterion(outputs, clean_images)
+        Huber_loss = criterion(outputs, clean_images)
+        perceptual_loss = lpips_loss(outputs, clean_images).mean()
+        loss = Huber_loss + 0.5*perceptual_loss
         loss.backward()
         optimizer.step()
         
         running_loss += loss.item()
-    
+
     epoch_loss = running_loss / len(train_loader)
     loss_values.append(epoch_loss)
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
+
+    epoch_time = time.time() - start_time
+    total_time = epoch_time * (num_epochs - epoch - 1)
+    eta = time.strftime("%H:%M:%S", time.gmtime(total_time))
+    
+    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Epoch Time: {epoch_time:.2f}s, ETA: {eta}')
+
 
 # 保存模型
 torch.save({

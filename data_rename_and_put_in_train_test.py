@@ -61,9 +61,8 @@ def clear_directory(directory):
             except Exception as e:
                 print(f'Failed to delete {file_path}. Reason: {e}')
 
-def copy_files_to_train_test(src_folder, train_range, prefix):
+def copy_files_to_train_test(src_folder, prefix, train_range, test_range):
     files = sorted([f for f in os.listdir(src_folder) if f.endswith(('.png', '.jpg', '.jpeg'))])
-    random.shuffle(files)  # 打乱文件顺序
     train_folder = os.path.join(train_directory, prefix)
     test_folder = os.path.join(test_directory, prefix)
     os.makedirs(train_folder, exist_ok=True)
@@ -73,7 +72,7 @@ def copy_files_to_train_test(src_folder, train_range, prefix):
         old_path = os.path.join(src_folder, filename)
         if idx in train_range:
             new_path = os.path.join(train_folder, filename)
-        else:
+        elif idx in test_range:
             new_path = os.path.join(test_folder, filename)
         shutil.copy(old_path, new_path)
         print(f"Copied {old_path} to {new_path}")
@@ -94,23 +93,70 @@ for folder in folders:
     folder_path = os.path.join(org_data_directory, folder)
     if os.path.isdir(folder_path):
         if folder.endswith('_test'):
-            ripple_start_idx = copy_and_rename_files(folder_path, ripple_directory, 'img', ripple_start_idx)
+            ripple_start_idx = copy_and_rename_files(folder_path, ripple_directory, 'ripple', ripple_start_idx)
         elif folder.endswith('_test_gt'):
-            clean_start_idx = copy_and_rename_files(folder_path, clean_directory, 'img', clean_start_idx)
+            clean_start_idx = copy_and_rename_files(folder_path, clean_directory, 'clean', clean_start_idx)
 
 # 手动输入区间，将区间内的图片放入train文件夹，其余放入test文件夹
 def input_train_test_ranges():
-    ranges = input("请输入训练集区间（例如：0-99,200-299）：")
+    ranges = input("请输入训练集区间(0-99,60,50%)：")
     train_range = set()
+    test_range = set()
+    
+    # 获取文件总数
+    total_files = len(os.listdir(ripple_directory))
+    
     for part in ranges.split(','):
-        start, end = map(int, part.split('-'))
-        train_range.update(range(start, end + 1))
-    return train_range
+        if part.endswith('%'):
+            # 处理百分比
+            percentage = int(part[:-1])
+            num_files = total_files * percentage // 100
+            train_range.update(random.sample(range(total_files), num_files))
+        elif '-' in part:
+            # 处理区间范围
+            start, end = map(int, part.split('-'))
+            train_range.update(range(start, end + 1))
+        else:
+            # 处理具体数量
+            num_files = int(part)
+            train_range.update(range(num_files))
+    
+    # 计算测试集
+    test_range.update(set(range(total_files)) - train_range)
+    
+    return train_range, test_range
+
+
+# 新增函数：打乱两个文件夹的文件顺序
+def shuffle_files(folder1, folder2):
+    files1 = sorted([f for f in os.listdir(folder1) if f.endswith(('.png', '.jpg', '.jpeg'))])
+    files2 = sorted([f for f in os.listdir(folder2) if f.endswith(('.png', '.jpg', '.jpeg'))])
+    
+    if len(files1) != len(files2):
+        raise ValueError("两个文件夹中的文件数量不一致")
+    
+    combined = list(zip(files1, files2))
+    random.shuffle(combined)
+    
+    for idx, (file1, file2) in enumerate(combined):
+        old_path1 = os.path.join(folder1, file1)
+        new_path1 = os.path.join(folder1, f"img{idx:05d}.png")
+        old_path2 = os.path.join(folder2, file2)
+        new_path2 = os.path.join(folder2, f"img{idx:05d}.png")
+        
+        os.rename(old_path1, new_path1)
+        os.rename(old_path2, new_path2)
+        
+        print(f"Renamed {old_path1} to {new_path1}")
+        print(f"Renamed {old_path2} to {new_path2}")
 
 # 将图片复制到train和test文件夹中
-ripple_train_range = input_train_test_ranges()
-clean_train_range = ripple_train_range
+ripple_train_range, ripple_test_range = input_train_test_ranges()
+clean_train_range, clean_test_range = ripple_train_range, ripple_test_range
 
-# 打乱顺序后确保 clean 和 ripple 对应的文件仍然一致
-copy_files_to_train_test(ripple_directory, ripple_train_range, 'ripple')
-copy_files_to_train_test(clean_directory, clean_train_range, 'clean')
+# 打乱文件夹中的文件顺序
+shuffle_files(ripple_directory, clean_directory)
+
+# 确保 clean 和 ripple 对应的文件保持一致
+copy_files_to_train_test(ripple_directory, 'ripple', ripple_train_range, ripple_test_range)
+copy_files_to_train_test(clean_directory, 'clean', clean_train_range, clean_test_range)
