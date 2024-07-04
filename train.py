@@ -11,10 +11,10 @@ model = model.to(device)
 
 # 定义损失函数和优化器
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 # 训练模型
-num_epochs = 5000
+num_epochs = 500
 for epoch in range(num_epochs):
     model.train()  
     for ripple_images, clean_images in train_loader:
@@ -67,7 +67,7 @@ all_ripple_images = np.concatenate(all_ripple_images, axis=0)
 all_clean_images = np.concatenate(all_clean_images, axis=0)
 all_denoised_images = np.concatenate(all_denoised_images, axis=0)
 
-# 将图像转换到 [0, 255] 范围内，并转换为 uint8
+
 all_clean_images = np.clip(all_clean_images, 0, 1)
 all_denoised_images = np.clip(all_denoised_images, 0, 1)
 all_ripple_images = np.clip(all_ripple_images, 0, 1)
