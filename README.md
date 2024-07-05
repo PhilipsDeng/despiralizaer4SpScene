@@ -3,6 +3,10 @@
 
 -Uses Lpips&L1 loss
 
+-my input images are in 128*128
+
 -paths saved in base_path.py
 
 -data should be saved in format as described in dataset.py
+
+-data_rename.py can automatically split test/train set
